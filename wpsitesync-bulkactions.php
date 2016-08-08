@@ -62,8 +62,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 			//if (!$this->_license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
 				//return;
 
-			// @todo enable is_auth
-			if (is_admin() /*&& SyncOptions::is_auth() */) {
+			if (is_admin() && SyncOptions::is_auth() ) {
 				$this->load_class('bulkactionsadmin');
 				SyncBulkActionsAdmin::get_instance();
 			}
