@@ -112,16 +112,31 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 			case 'bulk_push':
 				$synced = 0;
 				$error_ids = array();
+				$error_messages = array();
 				foreach ($post_ids as $post_id) {
 
-					//SyncAjax->_push()
-					//if (!$this->perform_export($post_id))
-						//wp_die(__('Error exporting post.'));
+					$api = new SyncApiRequest();
+					$response = new SyncApiResponse();
+					$api_response = $api->api('push', array('post_id' => $post_id));
+					$response->copy($api_response);
+					if ($api_response->is_success()) {
+						$response->success(TRUE);
+					} else {
+						$response->copy($api_response);
+						$error_ids[] = $post_id;
+						$error_messages[] = get_the_title($post_id). ': '. $api_response->response->error_message;
+					}
+SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 
 					$synced++;
 				}
 
-				$sendback = add_query_arg(array('synced' => $synced, 'error_ids' => implode(',', $error_ids), 'ids' => implode(',', $post_ids)), $sendback);
+				$sendback = add_query_arg(array(
+					'synced' => $synced,
+					'error_ids' => implode(',', $error_ids),
+					'error_messages' => implode('<br>', $error_messages),
+					'ids' => implode(',', $post_ids)
+				), $sendback);
 				break;
 			case 'bulk_pull':
 				break;
@@ -147,13 +162,12 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 
 		if ($pagenow == 'edit.php' && in_array($post_type, $this->_post_types) && isset($_REQUEST['synced']) && (int)$_REQUEST['synced']) {
 
-			if (0 === $_REQUEST['synced']) {
+			if (!empty($_REQUEST['error_ids'])) {
 				$message = __('Error processing Sync operations.', 'wpsitesync-bulkactions');
-				// @todo ...list each failed post’s title
-				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '">', $message, '</div>';
+				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '"><p>', $message, '</p><p>', $_REQUEST['error_messages'], '</p></div>';
 			} else {
 				$message = __('All Content was successfully Pushed to the Target system.', 'wpsitesync-bulkactions');
-				echo '<div class="notice notice-success is-dismissible">', $message, '</div>';
+				echo '<div class="notice notice-success is-dismissible"><p>', $message, '</p></div>';
 			}
 		}
 	}

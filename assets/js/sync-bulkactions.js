@@ -20,6 +20,15 @@ WPSiteSyncContent_BulkActions.prototype.init = function ()
         jQuery('#bulk-action-selector-top').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
         jQuery('#bulk-action-selector-bottom').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
     });
+
+    if (jQuery('.notice').hasClass('wpsitesync-bulk-errors')) {
+        var ids = jQuery('.notice.wpsitesync-bulk-errors').data('errorIds').toString(),
+            id_array = ids.split(',');
+
+        jQuery.each(id_array, function(i, value) {
+            jQuery('#cb-select-' + value).prop('checked', true);
+        });
+    }
 };
 
 wpsitesynccontent.bulkactions = new WPSiteSyncContent_BulkActions();
