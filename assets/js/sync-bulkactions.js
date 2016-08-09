@@ -16,7 +16,10 @@ function WPSiteSyncContent_BulkActions()
  */
 WPSiteSyncContent_BulkActions.prototype.init = function ()
 {
-
+    jQuery.each(syncbulkactions.actions, function(i) {
+        jQuery('#bulk-action-selector-top').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
+        jQuery('#bulk-action-selector-bottom').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
+    });
 };
 
 wpsitesynccontent.bulkactions = new WPSiteSyncContent_BulkActions();

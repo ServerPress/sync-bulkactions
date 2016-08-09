@@ -9,11 +9,15 @@
 class SyncBulkActionsAdmin
 {
 	private static $_instance = NULL;
+	private $_post_types;
 
 	private function __construct()
 	{
+		$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
+
 		add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
-		//add_action('spectrom_sync_ajax_operation', array(&$this, 'check_ajax_query'), 10, 3);
+		add_action('load-edit.php', array(&$this, 'process_bulk_actions'));
+		add_action('admin_notices', array(&$this, 'admin_notices'));
 	}
 
 	/**
@@ -43,15 +47,113 @@ class SyncBulkActionsAdmin
 
 		if ('edit.php' === $hook_suffix) {
 			$screen = get_current_screen();
-			$post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
 
-			if (in_array($screen->post_type, $post_types)) {
+			if (in_array($screen->post_type, $this->_post_types)) {
 				$translation_array = array(
-					'some_string' => __('Some string to translate', 'wpsitesync-bulkactions'),
-					'a_value' => '10'
-				);
-				wp_localize_script('sync-bulkactions', 'object_name', $translation_array);
+					'actions' => array(array(
+						'action_name' => 'bulk_push',
+						'action_text' => __('Push to Target', 'wpsitesync-bulkactions'),
+					),
+				));
+
+		 		if (class_exists('WPSiteSync_Pull') && WPSiteSync_Menus::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+		 			$translation_array['actions'][] = array(
+		 				'action_name' => 'bulk_pull',
+		 				'action_text' => __('Pull from Target', 'wpsitesync-bulkactions'),
+					);
+				}
+
+				wp_localize_script('sync-bulkactions', 'syncbulkactions', $translation_array);
 				wp_enqueue_script('sync-bulkactions');
+			}
+		}
+	}
+
+	/**
+	 * Process Bulk Actions
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function process_bulk_actions()
+	{
+		global $typenow;
+
+		if (in_array($typenow, $this->_post_types)) {
+			$wp_list_table = _get_list_table('WP_Posts_List_Table');
+			$action = $wp_list_table->current_action();
+SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE));
+
+			$allowed_actions = array('bulk_push');
+			if (class_exists('WPSiteSync_Pull') && WPSiteSync_Menus::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+				$allowed_actions[] = 'bulk_pull';
+			}
+			if (!in_array($action, $allowed_actions)) return;
+
+			// security check
+			check_admin_referer('bulk-posts');
+
+			// make sure ids are submitted.  depending on the resource type, this may be 'media' or 'ids'
+			if (isset($_REQUEST['post'])) {
+				$post_ids = array_map('intval', $_REQUEST['post']);
+			}
+
+			if (empty($post_ids)) return;
+
+			// this is based on wp-admin/edit.php
+			$sendback = remove_query_arg(array('exported', 'untrashed', 'deleted', 'ids'), wp_get_referer());
+			if (!$sendback)
+				$sendback = admin_url("edit.php?post_type=$typenow");
+
+			$pagenum = $wp_list_table->get_pagenum();
+			$sendback = add_query_arg('paged', $pagenum, $sendback);
+
+			switch ($action) {
+			case 'bulk_push':
+				$synced = 0;
+				$error_ids = array();
+				foreach ($post_ids as $post_id) {
+
+					//SyncAjax->_push()
+					//if (!$this->perform_export($post_id))
+						//wp_die(__('Error exporting post.'));
+
+					$synced++;
+				}
+
+				$sendback = add_query_arg(array('synced' => $synced, 'error_ids' => implode(',', $error_ids), 'ids' => implode(',', $post_ids)), $sendback);
+				break;
+			case 'bulk_pull':
+				break;
+			default: return;
+			}
+
+			$sendback = remove_query_arg(array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view'), $sendback);
+
+			wp_redirect($sendback);
+			exit();
+		}
+	}
+
+	/**
+	 * Admin Notices
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function admin_notices()
+	{
+		global $post_type, $pagenow;
+
+		if ($pagenow == 'edit.php' && in_array($post_type, $this->_post_types) && isset($_REQUEST['synced']) && (int)$_REQUEST['synced']) {
+
+			if (0 === $_REQUEST['synced']) {
+				$message = __('Error processing Sync operations.', 'wpsitesync-bulkactions');
+				// @todo ...list each failed post’s title
+				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '">', $message, '</div>';
+			} else {
+				$message = __('All Content was successfully Pushed to the Target system.', 'wpsitesync-bulkactions');
+				echo '<div class="notice notice-success is-dismissible">', $message, '</div>';
 			}
 		}
 	}
