@@ -101,7 +101,7 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 			if (empty($post_ids)) return;
 
 			// this is based on wp-admin/edit.php
-			$sendback = remove_query_arg(array('exported', 'untrashed', 'deleted', 'ids'), wp_get_referer());
+			$sendback = remove_query_arg(array('sync_type', 'error_ids', 'error_messages', 'untrashed', 'deleted', 'ids'), wp_get_referer());
 			if (!$sendback)
 				$sendback = admin_url("edit.php?post_type=$typenow");
 
@@ -110,7 +110,6 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 
 			switch ($action) {
 			case 'bulk_push':
-				$synced = 0;
 				$error_ids = array();
 				$error_messages = array();
 				foreach ($post_ids as $post_id) {
@@ -123,22 +122,46 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 						$response->success(TRUE);
 					} else {
 						$response->copy($api_response);
+						$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 						$error_ids[] = $post_id;
 						$error_messages[] = get_the_title($post_id). ': '. $api_response->response->error_message;
 					}
 SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
-
-					$synced++;
 				}
 
 				$sendback = add_query_arg(array(
-					'synced' => $synced,
+					'sync_type' => 'push',
 					'error_ids' => implode(',', $error_ids),
 					'error_messages' => implode('<br>', $error_messages),
 					'ids' => implode(',', $post_ids)
 				), $sendback);
 				break;
 			case 'bulk_pull':
+				$error_ids = array();
+				$error_messages = array();
+				foreach ($post_ids as $post_id) {
+
+					$api = new SyncApiRequest();
+					$response = new SyncApiResponse();
+					$api_response = $api->api('pullcontent', array('post_id' => $post_id));
+					$response->copy($api_response);
+					if ($api_response->is_success()) {
+						$response->success(TRUE);
+					} else {
+						$response->copy($api_response);
+						$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
+						$error_ids[] = $post_id;
+						$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->error_message;
+					}
+SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
+				}
+
+				$sendback = add_query_arg(array(
+					'sync_type' => 'pull',
+					'error_ids' => implode(',', $error_ids),
+					'error_messages' => implode('<br>', $error_messages),
+					'ids' => implode(',', $post_ids)
+				), $sendback);
 				break;
 			default: return;
 			}
@@ -160,13 +183,17 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 	{
 		global $post_type, $pagenow;
 
-		if ($pagenow == 'edit.php' && in_array($post_type, $this->_post_types) && isset($_REQUEST['synced']) && (int)$_REQUEST['synced']) {
+		if ($pagenow == 'edit.php' && in_array($post_type, $this->_post_types) && isset($_REQUEST['sync_type'])) {
 
 			if (!empty($_REQUEST['error_ids'])) {
 				$message = __('Error processing Sync operations.', 'wpsitesync-bulkactions');
 				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '"><p>', $message, '</p><p>', $_REQUEST['error_messages'], '</p></div>';
 			} else {
-				$message = __('All Content was successfully Pushed to the Target system.', 'wpsitesync-bulkactions');
+				if ('pull' === $_REQUEST['sync_type']) {
+					$message = __('All Content was successfully Pulled from the Target system.', 'wpsitesync-bulkactions');
+				} else {
+					$message = __('All Content was successfully Pushed to the Target system.', 'wpsitesync-bulkactions');
+				}
 				echo '<div class="notice notice-success is-dismissible"><p>', $message, '</p></div>';
 			}
 		}
