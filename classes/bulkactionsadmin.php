@@ -13,8 +13,6 @@ class SyncBulkActionsAdmin
 
 	private function __construct()
 	{
-		$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
-
 		add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
 		add_action('load-edit.php', array(&$this, 'process_bulk_actions'));
 		add_action('admin_notices', array(&$this, 'admin_notices'));
@@ -78,6 +76,8 @@ class SyncBulkActionsAdmin
 	public function process_bulk_actions()
 	{
 		global $typenow;
+
+		$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
 
 		if (in_array($typenow, $this->_post_types)) {
 			$wp_list_table = _get_list_table('WP_Posts_List_Table');
@@ -143,12 +143,24 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 
 					$api = new SyncApiRequest();
 					$response = new SyncApiResponse();
-					$api_response = $api->api('pullcontent', array('post_id' => $post_id));
+					$model = new SyncModel();
+
+					$sync_data = $model->get_sync_target_post($post_id, SyncOptions::get('target_site_key'));
+					if (NULL === $sync_data) {
+						// could not find Target post ID. Return error message
+						WPSiteSync_Pull::get_instance()->load_class('pullapirequest');
+						$response->error_code(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND);
+						return TRUE;        // return, signaling that we've handled the request
+					}
+					$target_post_id = abs($sync_data->target_content_id);
+					$api_response = $api->api('pullcontent', array('post_id' => $post_id, 'target_id' => $target_post_id));
 					$response->copy($api_response);
+
 					if ($api_response->is_success()) {
 						$response->success(TRUE);
 					} else {
 						$response->copy($api_response);
+						$response->success(FALSE);
 						$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 						$error_ids[] = $post_id;
 						$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->error_message;
