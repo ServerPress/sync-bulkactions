@@ -79,6 +79,10 @@ class SyncBulkActionsAdmin
 
 		$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
 
+		$license = new SyncLicensing();
+		if (!$license->check_license('sync_bulkactions', WPSiteSync_Menus::PLUGIN_KEY, WPSiteSync_Menus::PLUGIN_NAME))
+			return ;
+
 		if (in_array($typenow, $this->_post_types)) {
 			$wp_list_table = _get_list_table('WP_Posts_List_Table');
 			$action = $wp_list_table->current_action();

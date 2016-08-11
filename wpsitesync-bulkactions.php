@@ -58,9 +58,8 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 			$this->_license = new SyncLicensing();
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
 
-			// @todo enable
-			//if (!$this->_license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
-				//return;
+			if (!$this->_license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
+				return;
 
 			if (is_admin() && SyncOptions::is_auth() ) {
 				$this->load_class('bulkactionsadmin');
