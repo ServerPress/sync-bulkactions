@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: WPSiteSync Bulk Actions
+Plugin Name: WPSiteSync for Bulk Actions
 Plugin URI: http://wpsitesync.com
 Description: Extension for WPSiteSync for Content that provides the ability to operate on multiple pieces of Post or Page Content in a single operation.
 Author: WPSiteSync
@@ -22,7 +22,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 	{
 		private static $_instance = NULL;
 
-		const PLUGIN_NAME = 'WPSiteSync Bulk Actions';
+		const PLUGIN_NAME = 'WPSiteSync for Bulk Actions';
 		const PLUGIN_VERSION = '1.0';
 		const PLUGIN_KEY = '4151f50e546c7b0a53994d4c27f4cf31';
 
@@ -108,8 +108,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 
 		/**
 		 * Return license
-		 *
-		 * @return null
+		 * @return SyncLicensing instance of the SyncLicensing object
 		 */
 		public function get_license()
 		{
