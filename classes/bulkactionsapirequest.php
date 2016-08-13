@@ -31,9 +31,9 @@ class SyncBulkActionsApiRequest
 	public function filter_error_codes($message, $code)
 	{
 		switch ($code) {
-			case self::ERROR_BULK_ACTIONS:
-				$message = __('Error processing Sync operations.', 'wpsitesync-bulkactions');
-				break;
+		case self::ERROR_BULK_ACTIONS:
+			$message = __('Error processing Sync operations.', 'wpsitesync-bulkactions');
+			break;
 		}
 		return $message;
 	}
@@ -48,9 +48,9 @@ class SyncBulkActionsApiRequest
 	public function filter_notice_codes($message, $code)
 	{
 		switch ($code) {
-//			case self::NOTICE_BULK_ACTIONS:
-//				$message = __('', 'wpsitesync-bulkactions');
-//				break;
+//		case self::NOTICE_BULK_ACTIONS:
+//			$message = __('', 'wpsitesync-bulkactions');
+//			break;
 		}
 		return $message;
 	}
