@@ -42,6 +42,7 @@ class SyncBulkActionsAdmin
 	public function admin_enqueue_scripts($hook_suffix)
 	{
 		wp_register_script('sync-bulkactions', WPSiteSync_BulkActions::get_asset('js/sync-bulkactions.js'), array('sync'), WPSiteSync_BulkActions::PLUGIN_VERSION, TRUE);
+		wp_enqueue_style('sync-admin');
 
 		if ('edit.php' === $hook_suffix) {
 			$screen = get_current_screen();
@@ -50,17 +51,19 @@ class SyncBulkActionsAdmin
 				$translation_array = array(
 					'actions' => array(array(
 						'action_name' => 'bulk_push',
-						'action_text' => __('Push to Target', 'wpsitesync-bulkactions'),
+						'action_text' => __('WPSiteSync: Push to Target', 'wpsitesync-bulkactions'),
 					),
 				));
 
-		 		if (class_exists('WPSiteSync_Pull') && WPSiteSync_Menus::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+		 		if (class_exists('WPSiteSync_Pull') &&
+					WPSiteSync_BulkActions::get_instance()->get_license()
+						->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 		 			$translation_array['actions'][] = array(
 		 				'action_name' => 'bulk_pull',
-		 				'action_text' => __('Pull from Target', 'wpsitesync-bulkactions'),
+		 				'action_text' => __('WPSiteSync: Pull from Target', 'wpsitesync-bulkactions'),
 					);
 				}
-
+SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TRUE));
 				wp_localize_script('sync-bulkactions', 'syncbulkactions', $translation_array);
 				wp_enqueue_script('sync-bulkactions');
 			}
@@ -75,13 +78,14 @@ class SyncBulkActionsAdmin
 	 */
 	public function process_bulk_actions()
 	{
+		// TODO: use existing SyncLicense object: WPSiteSync_BulkActions->_license
+		$license = new SyncLicensing();
+		if (!$license->check_license('sync_bulkactions', WPSiteSync_BulkActions::PLUGIN_KEY, WPSiteSync_BulkActions::PLUGIN_NAME))
+			return;
+
 		global $typenow;
 
 		$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
-
-		$license = new SyncLicensing();
-		if (!$license->check_license('sync_bulkactions', WPSiteSync_Menus::PLUGIN_KEY, WPSiteSync_Menus::PLUGIN_NAME))
-			return ;
 
 		if (in_array($typenow, $this->_post_types)) {
 			$wp_list_table = _get_list_table('WP_Posts_List_Table');
@@ -89,25 +93,29 @@ class SyncBulkActionsAdmin
 SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE));
 
 			$allowed_actions = array('bulk_push');
-			if (class_exists('WPSiteSync_Pull') && WPSiteSync_Menus::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+			if (class_exists('WPSiteSync_Pull') &&
+				WPSiteSync_BulkActions::get_instance()->get_license()
+					->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 				$allowed_actions[] = 'bulk_pull';
 			}
-			if (!in_array($action, $allowed_actions)) return;
+			if (!in_array($action, $allowed_actions))
+				return;
 
 			// security check
 			check_admin_referer('bulk-posts');
 
 			// make sure ids are submitted.  depending on the resource type, this may be 'media' or 'ids'
 			if (isset($_REQUEST['post'])) {
-				$post_ids = array_map('intval', $_REQUEST['post']);
+				$post_ids = array_map('abs', $_REQUEST['post']);
 			}
 
-			if (empty($post_ids)) return;
+			if (empty($post_ids))
+				return;
 
 			// this is based on wp-admin/edit.php
 			$sendback = remove_query_arg(array('sync_type', 'error_ids', 'error_messages', 'untrashed', 'deleted', 'ids'), wp_get_referer());
 			if (!$sendback)
-				$sendback = admin_url("edit.php?post_type=$typenow");
+				$sendback = admin_url("edit.php?post_type={$typenow}");
 
 			$pagenum = $wp_list_table->get_pagenum();
 			$sendback = add_query_arg('paged', $pagenum, $sendback);
@@ -117,7 +125,6 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 				$error_ids = array();
 				$error_messages = array();
 				foreach ($post_ids as $post_id) {
-
 					$api = new SyncApiRequest();
 					$response = new SyncApiResponse();
 					$api_response = $api->api('push', array('post_id' => $post_id));
@@ -144,7 +151,6 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				$error_ids = array();
 				$error_messages = array();
 				foreach ($post_ids as $post_id) {
-
 					$api = new SyncApiRequest();
 					$response = new SyncApiResponse();
 					$model = new SyncModel();
@@ -182,7 +188,8 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 			default: return;
 			}
 
-			$sendback = remove_query_arg(array('action', 'action2', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view'), $sendback);
+			$sendback = remove_query_arg(array('action', 'action2', 'tags_input', 'post_author',
+				'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view'), $sendback);
 
 			wp_redirect($sendback);
 			exit();
@@ -199,18 +206,22 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 	{
 		global $post_type, $pagenow;
 
-		if ($pagenow == 'edit.php' && in_array($post_type, $this->_post_types) && isset($_REQUEST['sync_type'])) {
-
+		if ('edit.php' === $pagenow && in_array($post_type, $this->_post_types) && isset($_REQUEST['sync_type'])) {
 			if (!empty($_REQUEST['error_ids'])) {
-				$message = __('Error processing Sync operations.', 'wpsitesync-bulkactions');
-				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '"><p>', $message, '</p><p>', $_REQUEST['error_messages'], '</p></div>';
+				$message = __('Error processing Sync operations. The following items were not successful:', 'wpsitesync-bulkactions');
+				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '">';
+				echo '<img id="sync-logo" src="', WPSiteSyncContent::get_asset('imgs/wpsitesync-logo-blue.png'), '" width="125" height="45" alt="WPSiteSync logo" title="WPSiteSync for Content" />';
+				echo '<p>', $message, '</p>';
+				echo '<p>', $_REQUEST['error_messages'], '</p></div>';
 			} else {
 				if ('pull' === $_REQUEST['sync_type']) {
 					$message = __('All Content was successfully Pulled from the Target system.', 'wpsitesync-bulkactions');
 				} else {
 					$message = __('All Content was successfully Pushed to the Target system.', 'wpsitesync-bulkactions');
 				}
-				echo '<div class="notice notice-success is-dismissible"><p>', $message, '</p></div>';
+				echo '<div class="notice notice-success is-dismissible">';
+				echo '<img id="sync-logo" src="', WPSiteSyncContent::get_asset('imgs/wpsitesync-logo-blue.png'), '" width="125" height="45" alt="WPSiteSync logo" title="WPSiteSync for Content" />';
+				echo '<p>', $message, '</p></div>';
 			}
 		}
 	}
