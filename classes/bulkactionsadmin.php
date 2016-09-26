@@ -14,6 +14,7 @@ class SyncBulkActionsAdmin
 	private function __construct()
 	{
 		add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
+		add_action('admin_print_scripts-edit.php', array(&$this, 'print_hidden_div'));
 		add_action('load-edit.php', array(&$this, 'process_bulk_actions'));
 		add_action('admin_notices', array(&$this, 'admin_notices'));
 	}
@@ -42,7 +43,7 @@ class SyncBulkActionsAdmin
 	public function admin_enqueue_scripts($hook_suffix)
 	{
 		wp_register_script('sync-bulkactions', WPSiteSync_BulkActions::get_asset('js/sync-bulkactions.js'), array('sync'), WPSiteSync_BulkActions::PLUGIN_VERSION, TRUE);
-		wp_enqueue_style('sync-admin');
+		wp_register_style('sync-bulkactions', WPSiteSync_BulkActions::get_asset('css/sync-bulkactions.css'), array('sync-admin'), WPSiteSync_BulkActions::PLUGIN_VERSION);
 
 		if ('edit.php' === $hook_suffix) {
 			$screen = get_current_screen();
@@ -66,6 +67,7 @@ class SyncBulkActionsAdmin
 SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TRUE));
 				wp_localize_script('sync-bulkactions', 'syncbulkactions', $translation_array);
 				wp_enqueue_script('sync-bulkactions');
+				wp_enqueue_style('sync-bulkactions');
 			}
 		}
 	}
@@ -224,6 +226,42 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				echo '<p>', $message, '</p></div>';
 			}
 		}
+	}
+
+	/**
+	 * Prints hidden bulkactions ui div
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function print_hidden_div()
+	{
+		?>
+		<div id="sync-bulkactions-ui" style="display:none">
+			<div id="spectrom_sync" class="sync-bulkactions-contents">
+				<button class="sync-bulkactions-push button button-primary sync-button" type="button" title="<?php esc_html_e('Push Content to the Target site', 'wpsitesync-bulkactions'); ?>">
+					<span class="sync-button-icon dashicons dashicons-migrate"></span>
+					<?php esc_html_e('Push to Target', 'wpsitesync-bulkactions'); ?>
+				</button>
+				<button class="sync-bulkactions-pull button sync-button
+				<?php
+				if (class_exists('WPSiteSync_Pull') && WPSiteSync_Menus::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+					echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
+				} else {
+					echo 'button-secondary" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';
+				}
+				?> type="button" title="<?php esc_html_e('Pull Content from the Target site', 'wpsitesync-bulkactions'); ?>">
+					<span class="sync-button-icon sync-button-icon-rotate dashicons dashicons-migrate"></span>
+					<?php esc_html_e('Pull from Target', 'wpsitesync-bulkactions'); ?>
+				</button>
+				<div class="sync-bulkactions-msgs" style="display:none">
+					<div id="sync-pull-msg">
+						<div style="color: #0085ba;"><?php esc_html_e('Coming soon in Premium Membership!', 'wpsitesync-bulkactions') ?></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 }
 

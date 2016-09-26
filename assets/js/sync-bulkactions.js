@@ -29,6 +29,24 @@ WPSiteSyncContent_BulkActions.prototype.init = function ()
             jQuery('#cb-select-' + value).prop('checked', true);
         });
     }
+
+    jQuery('#post-query-submit').after(jQuery('#sync-bulkactions-ui').html());
+};
+
+WPSiteSyncContent_BulkActions.prototype.push = function (e)
+{
+    jQuery('#bulk-action-selector-top').val('bulk_push');
+    jQuery('#doaction').click();
+};
+
+WPSiteSyncContent_BulkActions.prototype.pull = function (enabled)
+{
+    if (true === enabled) {
+        jQuery('#bulk-action-selector-top').val('bulk_pull');
+        jQuery('#doaction').click();
+    } else {
+        jQuery('.sync-bulkactions-msgs').show();
+    }
 };
 
 wpsitesynccontent.bulkactions = new WPSiteSyncContent_BulkActions();
@@ -37,4 +55,8 @@ wpsitesynccontent.bulkactions = new WPSiteSyncContent_BulkActions();
 jQuery(document).ready(function ()
 {
     wpsitesynccontent.bulkactions.init();
+
+    jQuery('.sync-bulkactions-push').on('click', function() {
+        wpsitesynccontent.bulkactions.push();
+    });
 });
