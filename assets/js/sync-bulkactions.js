@@ -1,10 +1,10 @@
 /*
- * @copyright Copyright (C) 2015 SpectrOMtech.com. - All Rights Reserved.
- * @license GNU General Public License, version 2 (http://www.gnu.org/licenses/gpl-2.0.html)
+ * @copyright Copyright (C) 2015-2016 SpectrOMtech.com. - All Rights Reserved.
  * @author SpectrOMtech.com <hello@SpectrOMtech.com>
- * @url https://www.SpectrOMtech.com/products/
+ * @license GNU General Public License, version 2 (http://www.gnu.org/licenses/gpl-2.0.html)
+ * @url https://WPSiteSync.com
  * The PHP code portions are distributed under the GPL license. If not otherwise stated, all images, manuals, cascading style sheets, and included JavaScript *are NOT GPL, and are released under the SpectrOMtech Proprietary Use License v1.0
- * More info at https://SpectrOMtech.com/products/
+ * More info at https://WPSiteSync.com
  */
 
 function WPSiteSyncContent_BulkActions()
@@ -12,7 +12,7 @@ function WPSiteSyncContent_BulkActions()
 }
 
 /**
- * Init
+ * Initializes the page, adding buttons and setting up checkboxes based on content of Notice.
  */
 WPSiteSyncContent_BulkActions.prototype.init = function ()
 {
@@ -33,12 +33,20 @@ WPSiteSyncContent_BulkActions.prototype.init = function ()
     jQuery('#post-query-submit').after(jQuery('#sync-bulkactions-ui').html());
 };
 
-WPSiteSyncContent_BulkActions.prototype.push = function (e)
+/**
+ * Handler for Push button clicks
+ * @param {event} e The event object for the button click
+ */
+WPSiteSyncContent_BulkActions.prototype.push = function(e)
 {
     jQuery('#bulk-action-selector-top').val('bulk_push');
     jQuery('#doaction').click();
 };
 
+/**
+ * Handler for Pull button clicks
+ * @param {boolean} enabled True if Pull is enabled; otherwise False
+ */
 WPSiteSyncContent_BulkActions.prototype.pull = function (enabled)
 {
     if (true === enabled) {
@@ -52,7 +60,7 @@ WPSiteSyncContent_BulkActions.prototype.pull = function (enabled)
 wpsitesynccontent.bulkactions = new WPSiteSyncContent_BulkActions();
 
 // initialize the WPSiteSync operation on page load
-jQuery(document).ready(function ()
+jQuery(document).ready(function()
 {
     wpsitesynccontent.bulkactions.init();
 
