@@ -248,7 +248,7 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				if (class_exists('WPSiteSync_Pull') && WPSiteSync_Menus::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 					echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
 				} else {
-					echo 'button-secondary" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';
+					echo 'button-secondary button-disabled" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';
 				}
 				?> type="button" title="<?php esc_html_e('Pull Content from the Target site', 'wpsitesync-bulkactions'); ?>">
 					<span class="sync-button-icon sync-button-icon-rotate dashicons dashicons-migrate"></span>
@@ -256,7 +256,11 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				</button>
 				<div class="sync-bulkactions-msgs" style="display:none">
 					<div id="sync-pull-msg">
-						<div style="color: #0085ba;"><?php esc_html_e('Coming soon in Premium Membership!', 'wpsitesync-bulkactions') ?></div>
+						<div style="color: #0085ba;"><?php
+							echo sprintf(esc_html('Please activate the %1$sPull Extension%2$s%3$sfor bi-directional content sync.', 'wpsitesync-bulkactions'),
+								'<a href="https://wpsitesync.com/downloads/wpsitesync-for-pull/" target="_blank">',
+								'</a>', '<br/>');
+						?></div>
 					</div>
 				</div>
 			</div>
