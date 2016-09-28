@@ -245,7 +245,7 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				</button>
 				<button class="sync-bulkactions-pull button sync-button
 				<?php
-				if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSync_Pull::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+				if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSync_BulkActions::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 					echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
 				} else {
 					echo 'button-secondary button-disabled" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';
