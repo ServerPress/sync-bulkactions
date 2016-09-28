@@ -38,7 +38,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		 *
 		 * @since 1.0.0
 		 * @static
-		 * @return null|WPSiteSync_Menus
+		 * @return null|WPSiteSync_BulkActions
 		 */
 		public static function get_instance()
 		{
