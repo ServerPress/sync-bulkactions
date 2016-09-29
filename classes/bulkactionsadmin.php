@@ -153,29 +153,39 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				$error_ids = array();
 				$error_messages = array();
 				foreach ($post_ids as $post_id) {
+SyncDebug::log(__METHOD__.'() post id=' . $post_id);
 					$api = new SyncApiRequest();
 					$response = new SyncApiResponse();
+					// TODO: move instantiation outside the loop
 					$model = new SyncModel();
 
 					$sync_data = $model->get_sync_target_post($post_id, SyncOptions::get('target_site_key'));
 					if (NULL === $sync_data) {
+SyncDebug::log(__METHOD__.'() target post not found');
 						// could not find Target post ID. Return error message
 						WPSiteSync_Pull::get_instance()->load_class('pullapirequest');
 						$response->error_code(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND);
-						return TRUE;        // return, signaling that we've handled the request
-					}
-					$target_post_id = abs($sync_data->target_content_id);
-					$api_response = $api->api('pullcontent', array('post_id' => $post_id, 'target_id' => $target_post_id));
-					$response->copy($api_response);
-
-					if ($api_response->is_success()) {
-						$response->success(TRUE);
-					} else {
-						$response->copy($api_response);
-						$response->success(FALSE);
-						$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 						$error_ids[] = $post_id;
-						$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->error_message;
+						$error_messages[] = get_the_title($post_id) . ': ' . $api->error_code_to_string(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND); //$code)response->error_message;
+//						return TRUE;        // return, signaling that we've handled the request
+					} else {
+						// fount Target post ID. Continue with Pull request
+						$target_post_id = abs($sync_data->target_content_id);
+						// set the $_REQUEST['post_id'] so that WPSiteSync_Pull->api_response() can use this
+						// (This is set in normal 'pull' operations because the AJAX call sets ['post_id']. Here, we have to mimic that behavior.)
+						$_REQUEST['post_id'] = $post_id;
+						$api_response = $api->api('pullcontent', array('post_id' => $post_id, 'target_id' => $target_post_id));
+						$response->copy($api_response);
+
+						if ($api_response->is_success()) {
+							$response->success(TRUE);
+						} else {
+							$response->copy($api_response);
+							$response->success(FALSE);		// TODO: not needed- error_code() sets this to FALSE
+							$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
+							$error_ids[] = $post_id;
+							$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->error_message;
+						}
 					}
 SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				}
@@ -187,7 +197,9 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 					'ids' => implode(',', $post_ids)
 				), $sendback);
 				break;
-			default: return;
+
+			default:
+				return FALSE;				// return, signalling that the requested action was not recognized
 			}
 
 			$sendback = remove_query_arg(array('action', 'action2', 'tags_input', 'post_author',
