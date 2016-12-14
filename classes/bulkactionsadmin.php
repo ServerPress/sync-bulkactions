@@ -56,8 +56,8 @@ class SyncBulkActionsAdmin
 					),
 				));
 
-		 		if (class_exists('WPSiteSync_Pull') &&
-					WPSiteSync_BulkActions::get_instance()->get_license()
+		 		if (class_exists('WPSiteSync_Pull', FALSE) &&
+					WPSiteSyncContent::get_instance()->get_license()
 						->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 		 			$translation_array['actions'][] = array(
 		 				'action_name' => 'bulk_pull',
@@ -80,8 +80,7 @@ SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TR
 	 */
 	public function process_bulk_actions()
 	{
-		// TODO: use existing SyncLicense object: WPSiteSync_BulkActions->_license
-		$license = new SyncLicensing();
+		$license = WPSiteSyncContent::get_instance()->get_license();
 		if (!$license->check_license('sync_bulkactions', WPSiteSync_BulkActions::PLUGIN_KEY, WPSiteSync_BulkActions::PLUGIN_NAME))
 			return;
 
@@ -96,7 +95,7 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 
 			$allowed_actions = array('bulk_push');
 			if (class_exists('WPSiteSync_Pull') &&
-				WPSiteSync_BulkActions::get_instance()->get_license()
+				WPSiteSyncContent::get_instance()->get_license()
 					->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 				$allowed_actions[] = 'bulk_pull';
 			}
@@ -257,7 +256,7 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				</button>
 				<button class="sync-bulkactions-pull button sync-button
 				<?php
-				if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSync_BulkActions::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+				if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSyncContent::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 					echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
 				} else {
 					echo 'button-secondary button-disabled" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';

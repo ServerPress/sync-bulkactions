@@ -24,9 +24,9 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 
 		const PLUGIN_NAME = 'WPSiteSync for Bulk Actions';
 		const PLUGIN_VERSION = '1.0';
-		const PLUGIN_KEY = '4151f50e546c7b0a53994d4c27f4cf31';
+		const PLUGIN_KEY = 'a52e16518dcc910b9959b04c3d9ab698';
 
-		private $_license = NULL;
+//		private $_license = NULL;
 
 		private function __construct()
 		{
@@ -55,10 +55,11 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		 */
 		public function init()
 		{
-			$this->_license = new SyncLicensing();
+//			$this->_license = new SyncLicensing();
+			$license = WPSiteSyncContent::get_instance()->get_license();
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
-
-			if (!$this->_license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
+SyncDebug::log(__METHOD__.'() checking license');
+			if (!$license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
 				return;
 
 			if (is_admin() && SyncOptions::is_auth() ) {
@@ -107,15 +108,6 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		}
 
 		/**
-		 * Return license
-		 * @return SyncLicensing instance of the SyncLicensing object
-		 */
-		public function get_license()
-		{
-			return $this->_license;
-		}
-
-		/**
 		 * Adds the WPSiteSync Bulk Actions add-on to the list of known WPSiteSync extensions
 		 *
 		 * @param array $extensions The list of extensions
@@ -124,7 +116,8 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		 */
 		public function filter_active_extensions($extensions, $set = FALSE)
 		{
-			if ($set || $this->_license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
+SyncDebug::log(__METHOD__.'() checking license');
+			if ($set || WPSiteSyncContent::get_instance()->get_license()->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
 				$extensions['sync_bulkactions'] = array(
 					'name' => self::PLUGIN_NAME,
 					'version' => self::PLUGIN_VERSION,
