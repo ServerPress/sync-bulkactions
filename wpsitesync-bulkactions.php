@@ -58,7 +58,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 //			$this->_license = new SyncLicensing();
 			$license = WPSiteSyncContent::get_instance()->get_license();
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
-SyncDebug::log(__METHOD__.'() checking license');
+//SyncDebug::log(__METHOD__.'() checking license');
 			if (!$license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
 				return;
 
@@ -116,7 +116,7 @@ SyncDebug::log(__METHOD__.'() checking license');
 		 */
 		public function filter_active_extensions($extensions, $set = FALSE)
 		{
-SyncDebug::log(__METHOD__.'() checking license');
+//SyncDebug::log(__METHOD__.'() checking license');
 			if ($set || WPSiteSyncContent::get_instance()->get_license()->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
 				$extensions['sync_bulkactions'] = array(
 					'name' => self::PLUGIN_NAME,
