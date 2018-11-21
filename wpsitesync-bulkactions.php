@@ -26,8 +26,6 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		const PLUGIN_VERSION = '1.1';
 		const PLUGIN_KEY = 'a52e16518dcc910b9959b04c3d9ab698';
 
-//		private $_license = NULL;
-
 		private function __construct()
 		{
 			add_action('spectrom_sync_init', array(&$this, 'init'));
@@ -55,12 +53,12 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		 */
 		public function init()
 		{
-//			$this->_license = new SyncLicensing();
-			$license = WPSiteSyncContent::get_instance()->get_license();
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
-//SyncDebug::log(__METHOD__.'() checking license');
-			if (!$license->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME))
+
+			if (!WPSiteSyncContent::get_instance()->get_license()->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME)) {
+SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 				return;
+			}
 
 			if (is_admin() && SyncOptions::is_auth() ) {
 				$this->load_class('bulkactionsadmin');

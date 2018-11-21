@@ -9,7 +9,7 @@
 class SyncBulkActionsAdmin
 {
 	private static $_instance = NULL;
-	private $_post_types;
+	private $_post_types = array();
 
 	private function __construct()
 	{
@@ -21,7 +21,6 @@ class SyncBulkActionsAdmin
 
 	/**
 	 * Retrieve singleton class instance
-	 *
 	 * @since 1.0.0
 	 * @static
 	 * @return null|SyncMenusAdmin instance reference to plugin
@@ -35,7 +34,6 @@ class SyncBulkActionsAdmin
 
 	/**
 	 * Registers js and css to be used.
-	 *
 	 * @since 1.0.0
 	 * @param $hook_suffix
 	 * @return void
@@ -74,7 +72,6 @@ SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TR
 
 	/**
 	 * Process Bulk Actions
-	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -211,7 +208,6 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 
 	/**
 	 * Admin Notices
-	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -241,7 +237,6 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 
 	/**
 	 * Prints hidden bulkactions ui div
-	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
