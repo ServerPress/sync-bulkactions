@@ -23,3 +23,21 @@ margin: 0.2rem 0.2rem 0.2rem 8.16rem;
 	position: absolute;
 position: relative;
 }
+
+#spectrom_sync .sync-bulkactions-ui {
+	padding: .2rem;
+}
+
+#spectrom_sync .sync-bulkactions-ui .sync-bulkactions-progress {
+	background-color: light-gray;
+	width: 100%;
+	height: 1.5rem;
+}
+#spectrom_sync .sync-bulkactions-ui .sync-bulkactions-progress .sync-bulkactions-indicator {
+	text-align: center;
+	padding: 3px 0;
+	font-weight: bold;
+	color: white;
+	border-radius: 10px;
+	background-color: #0085ba;
+}

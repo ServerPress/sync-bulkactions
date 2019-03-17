@@ -260,14 +260,35 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 					<span class="sync-button-icon sync-button-icon-rotate dashicons dashicons-migrate"></span>
 					<?php esc_html_e('Pull from Target', 'wpsitesync-bulkactions'); ?>
 				</button>
-				<div class="sync-bulkactions-msgs" style="display:none">
-					<div id="sync-pull-msg">
+				<div class="sync-bulkactions-msg" style="display:none"></div>
+				<div class="sync-bulkactions-ui" style="display:none">
+					<div class="sync-bulkactions-progress">
+						<div class="sync-bulkactions-indicator" style="width:5%">
+							<span class="percent">5</span>%
+						</div>
+					</div>
+				</div>
+				</div>
+				<!-- an area to contain translatable messages -->
+				<div style="display:none">
+					<div id="sync-bulkactions-msg-activate-pull">
 						<div style="color: #0085ba;"><?php
 							echo sprintf(esc_html('Please activate the %1$sPull Extension%2$s%3$sfor bi-directional content sync.', 'wpsitesync-bulkactions'),
 								'<a href="https://wpsitesync.com/downloads/wpsitesync-for-pull/" target="_blank">',
 								'</a>', '<br/>');
 						?></div>
 					</div>
+					<div id="sync-bulkactions-msg-no-selection"><?php
+						echo __('Please select one or more posts below using the checkboxes', 'wpsitesync-bulkactions');
+					?></div>
+					<div id="sync-bulkactions-msg-pushing"><?php
+						echo sprintf(__('%1$s Pushing ~1 of ~2...', 'wpsitesync-bulkactions'),
+						'<img src="' . WPSiteSyncContent::get_asset('imgs/ajax-loader.gif') . '" />');
+					?></div>
+					<div id="sync-bulkactions-msg-complete"><?php
+						echo __('Bulk Push is complete.', 'wpsitesync-bulkactions');
+					?></div>
+					<div id="sync-message"></div>
 				</div>
 			</div>
 		</div>
