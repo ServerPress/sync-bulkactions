@@ -73,8 +73,15 @@ console.log(this.post_list);
 WPSiteSyncContent_BulkActions.prototype.push_next = function(post_id, success, response)
 {
 console.log('bulk.push_next() success=' + (success ? 'true' : 'false'));
+console.log(response);
 	var self = wpsitesynccontent.bulkactions;
 	if (success) {
+		// first check for errors
+		if ('undefined' !== typeof(response.has_errors) && 1 === response.has_errors) {
+			self.set_message(response.error_message);
+			self.post_idx = self.post_list.length;
+			return;
+		}
 		// successful- increment index and push again
 		self.post_idx++;
 console.log('bulk.push_next() idx=' + self.post_idx);

@@ -289,6 +289,7 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 						echo __('Bulk Push is complete.', 'wpsitesync-bulkactions');
 					?></div>
 					<div id="sync-message"></div>
+					<?php wp_nonce_field('sync', '_sync_nonce'); ?>
 				</div>
 			</div>
 		</div>
