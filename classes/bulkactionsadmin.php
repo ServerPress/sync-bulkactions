@@ -13,17 +13,16 @@ class SyncBulkActionsAdmin
 
 	private function __construct()
 	{
-		add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
-		add_action('admin_print_scripts-edit.php', array(&$this, 'print_hidden_div'));
-		add_action('load-edit.php', array(&$this, 'process_bulk_actions'));
-		add_action('admin_notices', array(&$this, 'admin_notices'));
+		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
+		add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
+		add_action('load-edit.php', array($this, 'process_bulk_actions'));
+		add_action('admin_notices', array($this, 'admin_notices'));
 	}
 
 	/**
 	 * Retrieve singleton class instance
 	 * @since 1.0.0
-	 * @static
-	 * @return null|SyncMenusAdmin instance reference to plugin
+	 * @return null|SyncBulkActionsAdmin instance reference to plugin
 	 */
 	public static function get_instance()
 	{
@@ -133,7 +132,7 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 						$response->copy($api_response);
 						$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 						$error_ids[] = $post_id;
-						$error_messages[] = get_the_title($post_id). ': '. $api_response->response->error_message;
+						$error_messages[] = get_the_title($post_id). ': '. $api_response->response->get_error_message();
 					}
 SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				}
@@ -162,7 +161,8 @@ SyncDebug::log(__METHOD__.'() target post not found');
 						WPSiteSync_Pull::get_instance()->load_class('pullapirequest');
 						$response->error_code(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND);
 						$error_ids[] = $post_id;
-						$error_messages[] = get_the_title($post_id) . ': ' . $api->error_code_to_string(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND); //$code)response->error_message;
+//						$error_messages[] = get_the_title($post_id) . ': ' . $api->error_code_to_string(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND); //$code)response->error_message;
+						$error_messages[] = get_the_title($post_id) . ': ' . $response->get_error_message();
 //						return TRUE;        // return, signaling that we've handled the request
 					} else {
 						// fount Target post ID. Continue with Pull request
@@ -180,7 +180,8 @@ SyncDebug::log(__METHOD__.'() target post not found');
 							$response->success(FALSE);		// TODO: not needed- error_code() sets this to FALSE
 							$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 							$error_ids[] = $post_id;
-							$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->error_message;
+//							$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->get_error_message();
+							$error_messages[] = get_the_title($post_id) . ': ' . $response->get_error_message();
 						}
 					}
 SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
