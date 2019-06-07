@@ -9,7 +9,7 @@
 class SyncBulkActionsAdmin
 {
 	private static $_instance = NULL;
-	private $_post_types = array();
+	private $_post_types = NULL;
 
 	private function __construct()
 	{
@@ -45,7 +45,7 @@ class SyncBulkActionsAdmin
 		if ('edit.php' === $hook_suffix) {
 			$screen = get_current_screen();
 
-			if (in_array($screen->post_type, $this->_post_types)) {
+			if (in_array($screen->post_type, $this->_get_post_types())) {
 				$translation_array = array(
 					'actions' => array(array(
 						'action_name' => 'bulk_push',
@@ -70,6 +70,17 @@ SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TR
 	}
 
 	/**
+	 * Helper method to construct a list of allowed post types to be used for Bulk Actions
+	 * @return array An array populated with allowed post types
+	 */
+	private function _get_post_types()
+	{
+		if (NULL === $this->_post_types)
+			$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
+		return $this->_post_types;
+	}
+
+	/**
 	 * Process Bulk Actions
 	 * @since 1.0.0
 	 * @return void
@@ -82,9 +93,7 @@ SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TR
 
 		global $typenow;
 
-		$this->_post_types = apply_filters('spectrom_sync_allowed_post_types', array('post', 'page'));
-
-		if (in_array($typenow, $this->_post_types)) {
+		if (in_array($typenow, $this->_get_post_types())) {
 			$wp_list_table = _get_list_table('WP_Posts_List_Table');
 			$action = $wp_list_table->current_action();
 SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE));
@@ -216,7 +225,7 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 	{
 		global $post_type, $pagenow;
 
-		if ('edit.php' === $pagenow && in_array($post_type, $this->_post_types) && isset($_REQUEST['sync_type'])) {
+		if ('edit.php' === $pagenow && in_array($post_type, $this->_get_post_types()) && isset($_REQUEST['sync_type'])) {
 			if (!empty($_REQUEST['error_ids'])) {
 				$message = __('Error processing Sync operations. The following items were not successful:', 'wpsitesync-bulkactions');
 				echo '<div class="notice notice-error is-dismissible wpsitesync-bulk-errors" data-error-ids="', $_REQUEST['error_ids'], '">';
