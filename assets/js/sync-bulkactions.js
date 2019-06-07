@@ -1,6 +1,6 @@
 /*
- * @copyright Copyright (C) 2015-2016 SpectrOMtech.com. - All Rights Reserved.
- * @author SpectrOMtech.com <hello@SpectrOMtech.com>
+ * @copyright Copyright (C) 2015-2019 SpectrOMtech.com. - All Rights Reserved.
+ * @author WPSiteSync.com <support@wpsitesync.com>
  * @license GNU General Public License, version 2 (http://www.gnu.org/licenses/gpl-2.0.html)
  * @url https://WPSiteSync.com
  * The PHP code portions are distributed under the GPL license. If not otherwise stated, all images, manuals, cascading style sheets, and included JavaScript *are NOT GPL, and are released under the SpectrOMtech Proprietary Use License v1.0
@@ -19,10 +19,10 @@ function WPSiteSyncContent_BulkActions()
 WPSiteSyncContent_BulkActions.prototype.init = function()
 {
 console.log('BulkActions.init()');
-	jQuery.each(syncbulkactions.actions, function(i) {
-		jQuery('#bulk-action-selector-top').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
-		jQuery('#bulk-action-selector-bottom').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
-	});
+//	jQuery.each(syncbulkactions.actions, function(i) {
+//		jQuery('#bulk-action-selector-top').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
+//		jQuery('#bulk-action-selector-bottom').append('<option value="' + syncbulkactions.actions[i].action_name + '">' + syncbulkactions.actions[i].action_text + '</option>');
+//	});
 
 	if (jQuery('.notice').hasClass('wpsitesync-bulk-errors')) {
 		var ids = jQuery('.notice.wpsitesync-bulk-errors').data('errorIds').toString(),
