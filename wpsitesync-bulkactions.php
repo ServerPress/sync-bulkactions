@@ -28,7 +28,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 
 		private function __construct()
 		{
-			add_action('spectrom_sync_init', array(&$this, 'init'));
+			add_action('spectrom_sync_init', array($this, 'init'));
 		}
 
 		/**
