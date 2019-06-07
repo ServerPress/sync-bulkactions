@@ -25,10 +25,12 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		const PLUGIN_NAME = 'WPSiteSync for Bulk Actions';
 		const PLUGIN_VERSION = '1.1';
 		const PLUGIN_KEY = 'a52e16518dcc910b9959b04c3d9ab698';
+		const REQUIRED_VERSION = '1.5.2';
 
 		private function __construct()
 		{
 			add_action('spectrom_sync_init', array($this, 'init'));
+			add_action('wp_loaded', array($this, 'wp_loaded'));
 		}
 
 		/**
@@ -57,6 +59,12 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 
 			if (!WPSiteSyncContent::get_instance()->get_license()->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME)) {
 SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
+				return;
+			}
+
+			// check for minimum WPSiteSync version
+			if (is_admin() && version_compare(WPSiteSyncContent::PLUGIN_VERSION, self::REQUIRED_VERSION) < 0 && current_user_can('activate_plugins')) {
+				add_action('admin_notices', array($this, 'notice_minimum_version'));
 				return;
 			}
 
@@ -89,6 +97,54 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 				return new $instance();
 			}
 			return FALSE;
+		}
+
+		/**
+		 * Called when WP is loaded so we can check if parent plugin is active.
+		 */
+		public function wp_loaded()
+		{
+			if (is_admin() && !class_exists('WPSiteSyncContent', FALSE) && current_user_can('activate_plugins')) {
+				add_action('admin_notices', array($this, 'notice_requires_wpss'));
+			}
+		}
+
+		/**
+		 * Displays the warning message stating the WPSiteSync is not present.
+		 */
+		public function notice_requires_wpss()
+		{
+			$install = admin_url('plugin-install.php?tab=search&s=wpsitesync');
+			$activate = admin_url('plugins.php');
+			$msg = sprintf(__('The <em>WPSiteSync for Bulk Actions</em> plugin requires the main <em>WPSiteSync for Content</em> plugin to be installed and activated. Please %1$sclick here</a> to install or %2$sclick here</a> to activate.', 'wpsitesync-bulkactions'),
+						'<a href="' . $install . '">',
+						'<a href="' . $activate . '">');
+			$this->_show_notice($msg, 'notice-warning');
+		}
+
+		/**
+		 * Display admin notice to upgrade WPSiteSync for Content plugin
+		 */
+		public function notice_minimum_version()
+		{
+			$this->_show_notice(
+				sprintf(__('WPSiteSync for Bulk Actions requires version %1$s or greater of <em>WPSiteSync for Content</em> to be installed. Please <a href="2%s">click here</a> to update.', 'wpsitesync-bulkactions'),
+					self::REQUIRED_VERSION,
+					admin_url('plugins.php')),
+				'notice-warning');
+		}
+
+		/**
+		 * Helper method to display notices
+		 * @param string $msg Message to display within notice
+		 * @param string $class The CSS class used on the <div> wrapping the notice
+		 * @param boolean $dismissable TRUE if message is to be dismissable; otherwise FALSE.
+		 */
+		private function _show_notice($msg, $class = 'notice-success', $dismissable = FALSE)
+		{
+			echo '<div class="notice ', $class, ' ', ($dismissable ? 'is-dismissible' : ''), '">';
+			echo '<p>', $msg, '</p>';
+			echo '</div>';
 		}
 
 		/**
