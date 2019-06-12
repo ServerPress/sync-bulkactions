@@ -81,6 +81,22 @@ SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TR
 	}
 
 	/**
+	 * Converts SyncResponse object errors to post title and text error message
+	 * @param int $post_id The Post ID that generated the error
+	 * @param SyncResponse $resp The response object containing the error code
+	 * @return string Formatted error with post title and message
+	 */
+	private function _get_error_message($post_id, $resp)
+	{
+		$msg = get_the_title($post_id) . ': ';
+		if (version_compare(WPSiteSyncContent::PLUGIN_VERSION, '1.5.3', '>='))
+			$msg .= $resp->response->get_error_message();
+		else
+			$msg .= SyncApiRequest::get_error($resp->error_code, $resp->error_data);
+		return $msg;
+	}
+
+	/**
 	 * Process Bulk Actions
 	 * @since 1.0.0
 	 * @return void
@@ -141,7 +157,7 @@ SyncDebug::log(__METHOD__ . '() list table action=' . var_export($action, TRUE))
 						$response->copy($api_response);
 						$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 						$error_ids[] = $post_id;
-						$error_messages[] = get_the_title($post_id). ': '. $api_response->response->get_error_message();
+						$error_messages[] = $this->_get_error_message($post_id, $response);
 					}
 SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 				}
@@ -171,7 +187,7 @@ SyncDebug::log(__METHOD__.'() target post not found');
 						$response->error_code(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND);
 						$error_ids[] = $post_id;
 //						$error_messages[] = get_the_title($post_id) . ': ' . $api->error_code_to_string(SyncPullApiRequest::ERROR_TARGET_POST_NOT_FOUND); //$code)response->error_message;
-						$error_messages[] = get_the_title($post_id) . ': ' . $response->get_error_message();
+						$error_messages[] = $this->_get_error_message($post_id, $response);
 //						return TRUE;        // return, signaling that we've handled the request
 					} else {
 						// fount Target post ID. Continue with Pull request
@@ -190,7 +206,7 @@ SyncDebug::log(__METHOD__.'() target post not found');
 							$response->error_code(SyncBulkActionsApiRequest::ERROR_BULK_ACTIONS);
 							$error_ids[] = $post_id;
 //							$error_messages[] = get_the_title($post_id) . ': ' . $api_response->response->get_error_message();
-							$error_messages[] = get_the_title($post_id) . ': ' . $response->get_error_message();
+							$error_messages[] = $this->_get_error_message($post_id, $response);
 						}
 					}
 SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
