@@ -1,0 +1,3 @@
+* enhancement: Added GUI for Bulk Actions which allows Push/Pull on large numbers of posts; includes progress bar.
+* fix: Address occasional runtime errors referencing non-initialized/empty arrays.
+* fix: Verify post lookup finds all Post Status types, including Trash and Custom Post Status types.
