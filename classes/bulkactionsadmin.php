@@ -2,7 +2,7 @@
 
 /*
  * Allows bulk actions between the Source and Target sites
- * @package Sync
+ * @package WPSiteSync
  * @author WPSiteSync
  */
 
@@ -13,15 +13,16 @@ class SyncBulkActionsAdmin
 
 	private function __construct()
 	{
-		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
-		add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
-		add_action('load-edit.php', array($this, 'process_bulk_actions'));
-		add_action('admin_notices', array($this, 'admin_notices'));
+		if (SyncOptions::has_cap()) {
+			add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
+			add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
+			add_action('load-edit.php', array($this, 'process_bulk_actions'));
+			add_action('admin_notices', array($this, 'admin_notices'));
+		}
 	}
 
 	/**
 	 * Retrieve singleton class instance
-	 * @since 1.0.0
 	 * @return null|SyncBulkActionsAdmin instance reference to plugin
 	 */
 	public static function get_instance()
@@ -33,14 +34,15 @@ class SyncBulkActionsAdmin
 
 	/**
 	 * Registers js and css to be used.
-	 * @since 1.0.0
 	 * @param $hook_suffix
-	 * @return void
 	 */
 	public function admin_enqueue_scripts($hook_suffix)
 	{
 		wp_register_script('sync-bulkactions', WPSiteSync_BulkActions::get_asset('js/sync-bulkactions.js'), array('sync'), WPSiteSync_BulkActions::PLUGIN_VERSION, TRUE);
 		wp_register_style('sync-bulkactions', WPSiteSync_BulkActions::get_asset('css/sync-bulkactions.css'), array('sync-admin'), WPSiteSync_BulkActions::PLUGIN_VERSION);
+
+		if (!SyncOptions::has_cap())
+			return;
 
 		if ('edit.php' === $hook_suffix) {
 			$screen = get_current_screen();
@@ -98,8 +100,6 @@ SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TR
 
 	/**
 	 * Process Bulk Actions
-	 * @since 1.0.0
-	 * @return void
 	 */
 	public function process_bulk_actions()
 	{
@@ -169,6 +169,7 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 					'ids' => implode(',', $post_ids)
 				), $sendback);
 				break;
+
 			case 'bulk_pull':
 				$error_ids = array();
 				$error_messages = array();
@@ -234,8 +235,6 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 
 	/**
 	 * Admin Notices
-	 * @since 1.0.0
-	 * @return void
 	 */
 	public function admin_notices()
 	{
@@ -263,63 +262,63 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 
 	/**
 	 * Prints hidden bulkactions ui div
-	 * @since 1.0.0
-	 * @return void
 	 */
 	public function print_hidden_div()
 	{
-		?>
-		<div id="sync-bulkactions-ui" style="display:none">
-			<div id="spectrom_sync" class="sync-bulkactions-contents">
-				<button class="sync-bulkactions-push button button-primary sync-button" type="button" title="<?php esc_html_e('Push Content to the Target site', 'wpsitesync-bulkactions'); ?>">
-					<span class="sync-button-icon dashicons dashicons-migrate"></span>
-					<?php esc_html_e('Push to Target', 'wpsitesync-bulkactions'); ?>
-				</button>
-				<button class="sync-bulkactions-pull button sync-button
-				<?php
-				if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSyncContent::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
-					echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
-				} else {
-					echo 'button-secondary button-disabled" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';
-				}
-				?> type="button" title="<?php esc_html_e('Pull Content from the Target site', 'wpsitesync-bulkactions'); ?>">
-					<span class="sync-button-icon sync-button-icon-rotate dashicons dashicons-migrate"></span>
-					<?php esc_html_e('Pull from Target', 'wpsitesync-bulkactions'); ?>
-				</button>
-				<div class="sync-bulkactions-msg" style="display:none"></div>
-				<div class="sync-bulkactions-ui" style="display:none">
-					<div class="sync-bulkactions-progress">
-						<div class="sync-bulkactions-indicator" style="width:5%">
-							<span class="percent">5</span>%
+		if (SyncOptions::has_cap()) {
+?>
+			<div id="sync-bulkactions-ui" style="display:none">
+				<div id="spectrom_sync" class="sync-bulkactions-contents">
+					<button class="sync-bulkactions-push button button-primary sync-button" type="button" title="<?php esc_html_e('Push Content to the Target site', 'wpsitesync-bulkactions'); ?>">
+						<span class="sync-button-icon dashicons dashicons-migrate"></span>
+						<?php esc_html_e('Push to Target', 'wpsitesync-bulkactions'); ?>
+					</button>
+					<button class="sync-bulkactions-pull button sync-button
+					<?php
+					if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSyncContent::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+						echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
+					} else {
+						echo 'button-secondary button-disabled" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';
+					}
+					?> type="button" title="<?php esc_html_e('Pull Content from the Target site', 'wpsitesync-bulkactions'); ?>">
+						<span class="sync-button-icon sync-button-icon-rotate dashicons dashicons-migrate"></span>
+						<?php esc_html_e('Pull from Target', 'wpsitesync-bulkactions'); ?>
+					</button>
+					<div class="sync-bulkactions-msg" style="display:none"></div>
+					<div class="sync-bulkactions-ui" style="display:none">
+						<div class="sync-bulkactions-progress">
+							<div class="sync-bulkactions-indicator" style="width:5%">
+								<span class="percent">5</span>%
+							</div>
 						</div>
 					</div>
-				</div>
-				</div>
-				<!-- an area to contain translatable messages -->
-				<div style="display:none">
-					<div id="sync-bulkactions-msg-activate-pull">
-						<div style="color: #0085ba;"><?php
-							echo sprintf(esc_html('Please activate the %1$sPull Extension%2$s%3$sfor bi-directional content sync.', 'wpsitesync-bulkactions'),
-								'<a href="https://wpsitesync.com/downloads/wpsitesync-for-pull/" target="_blank">',
-								'</a>', '<br/>');
-						?></div>
 					</div>
-					<div id="sync-bulkactions-msg-no-selection"><?php
-						echo __('Please select one or more posts below using the checkboxes', 'wpsitesync-bulkactions');
-					?></div>
-					<div id="sync-bulkactions-msg-pushing"><?php
-						echo sprintf(__('%1$s Pushing ~1 of ~2...', 'wpsitesync-bulkactions'),
-						'<img src="' . WPSiteSyncContent::get_asset('imgs/ajax-loader.gif') . '" />');
-					?></div>
-					<div id="sync-bulkactions-msg-complete"><?php
-						echo __('Bulk Push is complete.', 'wpsitesync-bulkactions');
-					?></div>
-					<div id="sync-message"></div>
-					<?php wp_nonce_field('sync', '_sync_nonce'); ?>
+					<!-- an area to contain translatable messages -->
+					<div style="display:none">
+						<div id="sync-bulkactions-msg-activate-pull">
+							<div style="color: #0085ba;"><?php
+								echo sprintf(esc_html('Please activate the %1$sPull Extension%2$s%3$sfor bi-directional content sync.', 'wpsitesync-bulkactions'),
+									'<a href="https://wpsitesync.com/downloads/wpsitesync-for-pull/" target="_blank">',
+									'</a>', '<br/>');
+							?></div>
+						</div>
+						<div id="sync-bulkactions-msg-no-selection"><?php
+							echo __('Please select one or more posts below using the checkboxes', 'wpsitesync-bulkactions');
+						?></div>
+						<div id="sync-bulkactions-msg-pushing"><?php
+							echo sprintf(__('%1$s Pushing ~1 of ~2...', 'wpsitesync-bulkactions'),
+							'<img src="' . WPSiteSyncContent::get_asset('imgs/ajax-loader.gif') . '" />');
+						?></div>
+						<div id="sync-bulkactions-msg-complete"><?php
+							echo __('Bulk Push is complete.', 'wpsitesync-bulkactions');
+						?></div>
+						<div id="sync-message"></div>
+						<?php wp_nonce_field('sync', '_sync_nonce'); ?>
+					</div>
 				</div>
 			</div>
-		</div>
-		<?php
+<?php
+		}
 	}
 }
 

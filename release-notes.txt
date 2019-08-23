@@ -2,3 +2,4 @@
 * fix: Address occasional runtime errors referencing non-initialized/empty arrays.
 * fix: Verify post lookup finds all Post Status types, including Trash and Custom Post Status types.
 * enhancement: update htaccess rules to allow for Apache 2.2 or Apache 2.4
+* enhancement: Add checks so the Bulk Actions UI and operations are only allowed when user meets WPSiteSync configured Roles.

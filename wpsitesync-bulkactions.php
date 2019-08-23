@@ -5,7 +5,7 @@ Plugin URI: https://wpsitesync.com/downloads/wpsitesync-bulk-actions/
 Description: Extension for WPSiteSync for Content that provides the ability to operate on multiple pieces of Post or Page Content in a single operation.
 Author: WPSiteSync
 Author URI: https://wpsitesync.com
-Version: 1.2
+Version: 1.0
 Text Domain: wpsitesync-bulkactions
 
 The PHP code portions are distributed under the GPL license. If not otherwise stated, all
@@ -35,10 +35,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 
 		/**
 		 * Retrieve singleton class instance
-		 *
-		 * @since 1.0.0
-		 * @static
-		 * @return null|WPSiteSync_BulkActions
+		 * @return WPSiteSync_BulkActions
 		 */
 		public static function get_instance()
 		{
@@ -49,9 +46,6 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 
 		/**
 		 * Callback for Sync initialization action
-		 *
-		 * @since 1.0.0
-		 * @return void
 		 */
 		public function init()
 		{
@@ -68,7 +62,7 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 				return;
 			}
 
-			if (is_admin() && SyncOptions::is_auth() ) {
+			if (is_admin() && SyncOptions::is_auth() && SyncOptions::has_cap() ) {
 				$this->load_class('bulkactionsadmin');
 				SyncBulkActionsAdmin::get_instance();
 			}
@@ -81,8 +75,6 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 
 		/**
 		 * Loads a specified class file name and optionally creates an instance of it
-		 *
-		 * @since 1.0.0
 		 * @param $name Name of class to load
 		 * @param bool $create TRUE to create an instance of the loaded class
 		 * @return bool|object Created instance of $create is TRUE; otherwise FALSE
@@ -163,7 +155,6 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 
 		/**
 		 * Adds the WPSiteSync Bulk Actions add-on to the list of known WPSiteSync extensions
-		 *
 		 * @param array $extensions The list of extensions
 		 * @param boolean TRUE to force adding the extension; otherwise FALSE
 		 * @return array Modified list of extensions
