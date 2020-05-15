@@ -13,12 +13,7 @@ class SyncBulkActionsAdmin
 
 	private function __construct()
 	{
-		if (SyncOptions::has_cap()) {
-			add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
-			add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
-			add_action('load-edit.php', array($this, 'process_bulk_actions'));
-			add_action('admin_notices', array($this, 'admin_notices'));
-		}
+		add_action('spectrom_sync_init', array($this, 'init'));
 	}
 
 	/**
@@ -30,6 +25,17 @@ class SyncBulkActionsAdmin
 		if (NULL === self::$_instance)
 			self::$_instance = new self();
 		return self::$_instance;
+	}
+
+	/**
+	 * Initialization callback
+	 */
+	public function init()
+	{
+		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
+		add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
+		add_action('load-edit.php', array($this, 'process_bulk_actions'));
+		add_action('admin_notices', array($this, 'admin_notices'));
 	}
 
 	/**

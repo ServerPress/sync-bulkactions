@@ -25,7 +25,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		const PLUGIN_NAME = 'WPSiteSync for Bulk Actions';
 		const PLUGIN_VERSION = '1.3';
 		const PLUGIN_KEY = 'a52e16518dcc910b9959b04c3d9ab698';
-		const REQUIRED_VERSION = '1.5.0';
+		const REQUIRED_VERSION = '1.5.5';				// requires version 1.5.5 #@#
 
 		private function __construct()
 		{
@@ -62,15 +62,25 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 				return;
 			}
 
-			if (is_admin() && SyncOptions::is_auth() && SyncOptions::has_cap() ) {
-				$this->load_class('bulkactionsadmin');
-				SyncBulkActionsAdmin::get_instance();
+			if (is_admin() && SyncOptions::is_auth()) {
+				add_action('spectrom_sync_api_init', array($this, 'api_init'));
 			}
 
 			$api = $this->load_class('bulkactionsapirequest', TRUE);
 
 			add_filter('spectrom_sync_error_code_to_text', array($api, 'filter_error_codes'), 10, 2);
 			add_filter('spectrom_sync_notice_code_to_text', array($api, 'filter_notice_codes'), 10, 2);
+		}
+
+		/**
+		 * Callback for API initialization
+		 */
+		public function api_init()
+		{
+			if (SyncOptions::has_cap()) {
+				$this->load_class('bulkactionsadmin');
+				SyncBulkActionsAdmin::get_instance();
+			}
 		}
 
 		/**
