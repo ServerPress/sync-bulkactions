@@ -25,7 +25,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		const PLUGIN_NAME = 'WPSiteSync for Bulk Actions';
 		const PLUGIN_VERSION = '1.3';
 		const PLUGIN_KEY = 'a52e16518dcc910b9959b04c3d9ab698';
-		const REQUIRED_VERSION = '1.5.5';				// requires version 1.5.5 #@#
+		const REQUIRED_VERSION = '1.5.5';				// requires version 1.5.5
 
 		private function __construct()
 		{
@@ -59,6 +59,7 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 			// check for minimum WPSiteSync version
 			if (is_admin() && version_compare(WPSiteSyncContent::PLUGIN_VERSION, self::REQUIRED_VERSION) < 0 && current_user_can('activate_plugins')) {
 				add_action('admin_notices', array($this, 'notice_minimum_version'));
+				add_action('admin_init', array($this, 'disable_plugin'));
 				return;
 			}
 
@@ -108,6 +109,7 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 		{
 			if (is_admin() && !class_exists('WPSiteSyncContent', FALSE) && current_user_can('activate_plugins')) {
 				add_action('admin_notices', array($this, 'notice_requires_wpss'));
+				add_action('admin_init', array($this, 'disable_plugin'));
 			}
 		}
 
@@ -147,6 +149,14 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 			echo '<div class="notice ', $class, ' ', ($dismissable ? 'is-dismissible' : ''), '">';
 			echo '<p>', $msg, '</p>';
 			echo '</div>';
+		}
+
+		/**
+		 * Disables the plugin if WPSiteSync not installed or ACF is too old
+		 */
+		public function disable_plugin()
+		{
+			deactivate_plugins(plugin_basename(__FILE__));
 		}
 
 		/**
