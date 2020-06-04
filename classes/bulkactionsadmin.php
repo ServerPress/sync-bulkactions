@@ -13,7 +13,10 @@ class SyncBulkActionsAdmin
 
 	private function __construct()
 	{
-		add_action('spectrom_sync_init', array($this, 'init'));
+		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
+		add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
+		add_action('load-edit.php', array($this, 'process_bulk_actions'));
+		add_action('admin_notices', array($this, 'admin_notices'));
 	}
 
 	/**
@@ -25,17 +28,6 @@ class SyncBulkActionsAdmin
 		if (NULL === self::$_instance)
 			self::$_instance = new self();
 		return self::$_instance;
-	}
-
-	/**
-	 * Initialization callback
-	 */
-	public function init()
-	{
-		add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
-		add_action('admin_print_scripts-edit.php', array($this, 'print_hidden_div'));
-		add_action('load-edit.php', array($this, 'process_bulk_actions'));
-		add_action('admin_notices', array($this, 'admin_notices'));
 	}
 
 	/**
@@ -281,7 +273,8 @@ SyncDebug::log(__METHOD__ . '() response=' . var_export($response, TRUE));
 					</button>
 					<button class="sync-bulkactions-pull button sync-button
 					<?php
-					if (class_exists('WPSiteSync_Pull', FALSE) && WPSiteSyncContent::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
+					if (class_exists('WPSiteSync_Pull', FALSE) &&
+						WPSiteSyncContent::get_instance()->get_license()->check_license('sync_pull', WPSiteSync_Pull::PLUGIN_KEY, WPSiteSync_Pull::PLUGIN_NAME)) {
 						echo 'button-primary" onclick="wpsitesynccontent.bulkactions.pull(true); return false;"';
 					} else {
 						echo 'button-secondary button-disabled" onclick="wpsitesynccontent.bulkactions.pull(false); return false;"';

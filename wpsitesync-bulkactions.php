@@ -49,6 +49,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		 */
 		public function init()
 		{
+SyncDebug::log(__METHOD__.'():' . __LINE__);
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
 
 			if (!WPSiteSyncContent::get_instance()->get_license()->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME)) {
@@ -63,25 +64,16 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 				return;
 			}
 
-			if (is_admin() && SyncOptions::is_auth()) {
-				add_action('spectrom_sync_api_init', array($this, 'api_init'));
+			if (is_admin() && SyncOptions::is_auth() && SyncOptions::has_cap()) {
+SyncDebug::log(__METHOD__.'():' . __LINE__ . ' initializing api');
+				$this->load_class('bulkactionsadmin');
+				SyncBulkActionsAdmin::get_instance();
 			}
 
 			$api = $this->load_class('bulkactionsapirequest', TRUE);
 
 			add_filter('spectrom_sync_error_code_to_text', array($api, 'filter_error_codes'), 10, 2);
 			add_filter('spectrom_sync_notice_code_to_text', array($api, 'filter_notice_codes'), 10, 2);
-		}
-
-		/**
-		 * Callback for API initialization
-		 */
-		public function api_init()
-		{
-			if (SyncOptions::has_cap()) {
-				$this->load_class('bulkactionsadmin');
-				SyncBulkActionsAdmin::get_instance();
-			}
 		}
 
 		/**
