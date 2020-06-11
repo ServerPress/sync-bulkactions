@@ -5,7 +5,7 @@ Plugin URI: https://wpsitesync.com/downloads/wpsitesync-bulk-actions/
 Description: Extension for WPSiteSync for Content that provides the ability to operate on multiple pieces of Post or Page Content in a single operation.
 Author: WPSiteSync
 Author URI: https://wpsitesync.com
-Version: 1.3
+Version: 1.4
 Text Domain: wpsitesync-bulkactions
 
 The PHP code portions are distributed under the GPL license. If not otherwise stated, all
@@ -23,9 +23,9 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		private static $_instance = NULL;
 
 		const PLUGIN_NAME = 'WPSiteSync for Bulk Actions';
-		const PLUGIN_VERSION = '1.3';
+		const PLUGIN_VERSION = '1.4';
 		const PLUGIN_KEY = 'a52e16518dcc910b9959b04c3d9ab698';
-		const REQUIRED_VERSION = '1.5.5';				// requires version 1.5.5
+		const REQUIRED_VERSION = '1.6';					// requires WPSiteSync version 1.6
 
 		private function __construct()
 		{
