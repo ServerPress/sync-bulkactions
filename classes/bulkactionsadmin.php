@@ -61,7 +61,7 @@ class SyncBulkActionsAdmin
 		 				'action_text' => __('WPSiteSync: Pull from Target', 'wpsitesync-bulkactions'),
 					);
 				}
-SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TRUE));
+//SyncDebug::log(__METHOD__.'() translations=' . var_export($translation_array, TRUE));
 				wp_localize_script('sync-bulkactions', 'syncbulkactions', $translation_array);
 				wp_enqueue_script('sync-bulkactions');
 				wp_enqueue_style('sync-bulkactions');

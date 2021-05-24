@@ -49,7 +49,7 @@ if (!class_exists('WPSiteSync_BulkActions')) {
 		 */
 		public function init()
 		{
-SyncDebug::log(__METHOD__.'():' . __LINE__);
+//SyncDebug::log(__METHOD__.'():' . __LINE__);
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
 
 			if (!WPSiteSyncContent::get_instance()->get_license()->check_license('sync_bulkactions', self::PLUGIN_KEY, self::PLUGIN_NAME)) {
@@ -65,10 +65,12 @@ SyncDebug::log(__METHOD__.'():' . __LINE__ . ' no license');
 			}
 
 			if (is_admin() && SyncOptions::is_auth() && SyncOptions::has_cap()) {
-SyncDebug::log(__METHOD__.'():' . __LINE__ . ' initializing api');
+//SyncDebug::log(__METHOD__.'():' . __LINE__ . ' initializing api');
 				$this->load_class('bulkactionsadmin');
 				SyncBulkActionsAdmin::get_instance();
 			}
+
+			// TODO: use a 'spectrom_sync_allow_sync', post_id, post_type filter and the post ID to allow add-ons to control whether or not the metabox is displayed for specific posts
 
 			$api = $this->load_class('bulkactionsapirequest', TRUE);
 

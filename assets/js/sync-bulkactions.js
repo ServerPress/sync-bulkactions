@@ -1,5 +1,5 @@
 /*
- * @copyright Copyright (C) 2015-2019 SpectrOMtech.com. - All Rights Reserved.
+ * @copyright Copyright (C) 2015-2021 WPSiteSync.com. - All Rights Reserved.
  * @author WPSiteSync.com <support@wpsitesync.com>
  * @license GNU General Public License, version 2 (http://www.gnu.org/licenses/gpl-2.0.html)
  * @url https://WPSiteSync.com
@@ -11,6 +11,7 @@ function WPSiteSyncContent_BulkActions()
 {
 	this.post_list = null;
 	this.post_idx = 0;
+	this.offset = 0;				// starting variation when pushing variations
 }
 
 /**
@@ -32,6 +33,7 @@ console.log('BulkActions.init()');
 			jQuery('#cb-select-' + value).prop('checked', true);
 		});
 	}
+	jQuery(document).on('sync_api_data', this.filter_sync_data);
 
 	jQuery('#post-query-submit').after(jQuery('#sync-bulkactions-ui').html());
 };
@@ -49,12 +51,12 @@ console.log('bulk.push() post list:');
 console.log(this.post_list);
 	if (0 === this.post_list.length) {
 		this.close_ui();
-		this.set_message(jQuery('#sync-bulkactions-msg-no-selection').html())
+		this.set_message(jQuery('#sync-bulkactions-msg-no-selection').html());
 	} else {
 		this.setup_ui();
 		wpsitesynccontent.set_api_callback(wpsitesynccontent.bulkactions.push_next);
 		this.post_idx = -1;
-		this.push_next(0, true, {});
+		this.push_next(0, true, null);
 
 /*		var msg = jQuery('#sync-bulkactions-msg-pushing').html();
 		this.post_idx = 0;
@@ -70,20 +72,45 @@ console.log(this.post_list);
 //	jQuery('#doaction').click();
 };
 
+/**
+ * Push the next item to the Target
+ * @param {int} post_id The post to Push
+ * @param {boolean} success true, when the Push operation had a successful result; otherwise false
+ * @param {object} response The response object returned from the AJAX call
+ */
 WPSiteSyncContent_BulkActions.prototype.push_next = function(post_id, success, response)
 {
 console.log('bulk.push_next() success=' + (success ? 'true' : 'false'));
 console.log(response);
 	var self = wpsitesynccontent.bulkactions;
+	if ('undefined' === typeof(response))
+		response = null;
+
 	if (success) {
 		// first check for errors
-		if ('undefined' !== typeof(response.has_errors) && 1 === response.has_errors) {
+		if (null !== response && ('undefined' !== typeof(response.has_errors) && 1 === response.has_errors)) {
 			self.set_message(response.error_message);
 			self.post_idx = self.post_list.length;
 			return;
 		}
-		// successful- increment index and push again
-		self.post_idx++;
+
+		// successful- check for multipart content push and push again
+		var incr = 0;
+		if (null !== response &&
+			('undefined' !== typeof(response.data) && 'undefined' !== typeof(response.data.offset_increment))) {
+			incr = parseInt(response.data.offset_increment);
+		}
+console.log('incr=' + incr);
+
+		if (0 !== incr) {
+			// this content needs another Push
+			// increment the offset and allow to be Pushed again
+			self.offset += incr;
+		} else {
+			// move to the next post in the list
+			self.post_idx++;
+			self.offset = 0;
+		}
 console.log('bulk.push_next() idx=' + self.post_idx);
 console.log(self.post_list);
 		if (self.post_idx === self.post_list.length) {
@@ -99,9 +126,26 @@ console.log(self.post_list);
 		wpsitesynccontent.push(self.post_list[self.post_idx]);
 	} else {
 		// got an error, set the message and don't continue
-		self.set_message(response.error_message);
+		if (null !== response)
+			self.set_message(response.error_message);
 	}
-}
+};
+
+/**
+ * Filters the data to be sent via AJAX API call
+ * @param {Event} event Event triggering the filter
+ * @param {object} data The data object to be sent via AJAX to the site
+ * @returns {object} modified data object
+ */
+WPSiteSyncContent_BulkActions.prototype.filter_sync_data = function(event, data)
+{
+console.log('ba.filter_sync_data() offset=');
+console.log(wpsitesynccontent.bulkactions.offset);
+console.log('ba filter_sync_data() data=');
+	data.offset = wpsitesynccontent.bulkactions.offset;
+console.log(data);
+	return data;
+};
 
 /**
  * Handler for Pull button clicks
@@ -118,7 +162,10 @@ WPSiteSyncContent_BulkActions.prototype.pull = function(enabled)
 	}
 };
 
-
+/**
+ * Creates a list of the selected posts on the page
+ * @returns {Array} A list of the post IDs that have been checked
+ */
 WPSiteSyncContent_BulkActions.prototype.get_post_list = function()
 {
 	var post_list = Array();
@@ -132,6 +179,9 @@ console.log(post_list);
 	return post_list;
 };
 
+/**
+ * Sets up the UI for the Bulk Actions process
+ */
 WPSiteSyncContent_BulkActions.prototype.setup_ui = function()
 {
 	this.clear_message();
@@ -140,6 +190,11 @@ WPSiteSyncContent_BulkActions.prototype.setup_ui = function()
 	jQuery('#spectrom_sync .sync-bulkactions-ui').show();
 };
 
+/**
+ * Updates the progress indicator
+ * @param {int} item The item number within the list
+ * @param {int} count Number of items in the list
+ */
 WPSiteSyncContent_BulkActions.prototype.set_progress = function(item, count)
 {
 	var pcnt = Math.floor(((item + 1) * 100) / count);
@@ -147,11 +202,18 @@ WPSiteSyncContent_BulkActions.prototype.set_progress = function(item, count)
 	jQuery('#spectrom_sync .percent').text(pcnt + '');
 };
 
+/**
+ * Hides the UI when no longer in use
+ */
 WPSiteSyncContent_BulkActions.prototype.close_ui = function()
 {
 	jQuery('#spectrom_sync .sync-bulkactions-ui').hide();
 };
 
+/**
+ * Sets the message text displayed within the UI area
+ * @param {string} msg The message to be displayed
+ */
 WPSiteSyncContent_BulkActions.prototype.set_message = function(msg)
 {
 console.log('set_message() "' + msg + '"');
@@ -159,6 +221,9 @@ console.log('set_message() "' + msg + '"');
 	jQuery('.sync-bulkactions-msg').show();
 };
 
+/**
+ * Removes the message from the UI display
+ */
 WPSiteSyncContent_BulkActions.prototype.clear_message = function()
 {
 	jQuery('.sync-bulkactions-msg').hide();
